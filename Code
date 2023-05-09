@@ -1,0 +1,109 @@
+#include <avr/io.h>
+#include <util/delay.h>
+#include <stdint.h>
+#include <avr/interrupt.h>
+
+double dutyCycle = 0;
+
+int main(void)
+{
+
+	DDRD = 0b11111000;  //sets pins PD3,4,5,6,7 as outputs and PD0,1,2 as inputs
+
+	 ADMUX = (1 << REFS0) | (1 << MUX0) | (1 << MUX1);
+	 ADCSRA = (1 << ADEN) | (1 << ADIE) | (1 << ADPS0) | (1 << ADPS1) | (1 << ADPS2);
+	 DIDR0 = (1 << ADC5D);
+	 
+	 ADCSRA |= (1 << ADSC);//adc stuff ends
+
+	 TCCR0A = (1 << COM0A1) | (1 << WGM00) | (1 << WGM01);
+	 TIMSK0 = (1 << TOIE0);
+	 
+	 OCR0A = (dutyCycle/100.0)*255.0;
+	 
+	 sei();
+	 
+	 TCCR0B = (1 << CS01);
+
+	while(1) {
+
+	if (PIND & (1 << PD2)){ //check if pin 2 (SW3 is pressed)
+
+	    ADCSRA |= (1 << ADSC); //reads the adc reading
+		
+		dutyCycle = (ADC / 4) - 107; 
+
+		//2.64v high 819
+		//1.45 low 445
+
+		}
+
+		else{	//function that executes when sw3 pressed
+
+		PORTD= 0b10100000; //sets led to blue and turns servo
+
+		_delay_ms(2);
+
+		PORTD= 0b00100000;  //end of servo command
+
+		_delay_ms(3000);
+
+		ADCSRA |= (1 << ADSC); //reads the adc reading
+
+		PORTD= 0b10100000;  //initiates servo retraction
+
+		_delay_ms(1);
+
+		PORTD= 0b00000000;  //servo retraction complete, all leds green
+
+
+		if (ADC > 433){
+			PORTD= 0b00000000; //green
+		}
+
+		else{
+
+		//rapid blinking
+
+			_delay_ms(100);
+			PORTD= 0b00001000;  
+			_delay_ms(100);
+			PORTD= 0b00000000;  //green
+			_delay_ms(100);
+			PORTD= 0b00001000;  
+			_delay_ms(100);
+			PORTD= 0b00000000;  //green
+			_delay_ms(100);
+			PORTD= 0b00001000;  
+			_delay_ms(100);
+			PORTD= 0b00000000;  //green
+			_delay_ms(100);
+			PORTD= 0b00001000;  
+			_delay_ms(100);
+			PORTD= 0b00000000;  //green
+			_delay_ms(100);
+			PORTD= 0b00001000;
+			_delay_ms(100);
+			PORTD= 0b00000000;  //green
+			_delay_ms(100);
+			PORTD= 0b00001000;
+			_delay_ms(100);
+			PORTD= 0b00000000;  //green
+			_delay_ms(100);
+			PORTD= 0b00001000;
+
+			}
+		}
+	}
+}
+
+
+ISR(ADC_vect)
+{
+	ADCSRA |= (1 << ADSC);
+}
+
+ISR(TIMER0_OVF_vect)
+{
+	OCR0A = (dutyCycle/100.0)*255;
+}
