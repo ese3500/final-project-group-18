@@ -1,0 +1,10 @@
+nothing special needed to compile and run the code, just upload it to the circuit board I made. Values for the adc read offset may need to be slightly changed if resistor values are marginally different between boards
+
+Here is the devpost:
+https://devpost.com/software/automated-product-quality-control-testing-device?ref_content=my-projects-tab&ref_feature=my_projects
+
+Here is the demo video:
+https://youtu.be/7wRJfJM_lWA
+
+here is the proposal video:
+https://youtu.be/apfhn_-yHLU
